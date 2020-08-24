@@ -3,11 +3,11 @@
 ------------------         Made by GbaCretin           ------------------
 -------------------------------------------------------------------------
 
--------------------------------| Constants |------------------------------
+----------------------------| Constants |---------------------------
 local TITLE         = "Aseprite Neogeo Fix Image Converter"
 local PALETTE_INDEX = 1
 
---------------------------| Conversion Functions |------------------------
+-----------------------| Conversion Functions |---------------------
 function to_neogeo_color(color)
     local luma 
         = math.floor(
@@ -33,77 +33,100 @@ function to_pal_idx_matrix(img, tile_x, tile_y)
         pal_idx_array[y] = {}
         
         for x=0,7 do
-            pal_idx_array[y][x] = math.min(15, img:getPixel(x+ofs_x, y+ofs_y))
+            local px = img:getPixel(x+ofs_x, y+ofs_y)
+            if px <= 15 then
+                pal_idx_array[y][x] = px
+            else
+                pal_idx_array[y][x] = 0
+            end
         end
     end
     
     return pal_idx_array
 end
 
--------------------------------| Main code |------------------------------
-if app.activeSprite.colorMode ~= ColorMode.INDEXED then
-    app.alert{
-        title=TITLE,
-        text="ERROR! The sprite's color mode must be indexed."
-    }
+----------------------------| Main code |---------------------------
+
+local sprite = Sprite(app.activeSprite)
+sprite:flatten()
+local layer = sprite.layers[1]
+local sprite_name = app.fs.fileTitle(app.activeSprite.filename)
+
+if sprite.colorMode ~= ColorMode.INDEXED then
+    if app.isUIAvailable then
+        app.alert{
+            title=TITLE,
+            text="ERROR! The sprite's color mode must be indexed."
+        }
+    else
+        print("ERROR! The sprite's color mode must be indexed.")
+    end
+    
     return
 end
-
-local layer = app.activeLayer
 
 if layer.isGroup then
-    app.alert{
-        title=TITLE,
-        text="ERROR! The selected layer cannot be a group."
-    }
+    if app.isUIAvailable then
+        app.alert{
+            title=TITLE,
+            text="ERROR! The selected layer cannot be a group."
+        }
+    else
+        print("ERROR! The selected layer cannot be a group.")
+    end
+    
     return
 end
 
-if #layer.sprite.palettes[PALETTE_INDEX] > 16 then
-    local res = app.alert{
-        title=TITLE,
-        buttons={"Ok", "Cancel"},
-        text="WARNING! The FIX palette can only contain a maximum of 16 colors. Some of them won't show up.",
-    }
-    
-    if res ~= 1 then
-        return
+if #sprite.palettes[PALETTE_INDEX] > 16 then
+    if app.isUIAvailable then
+        local res = app.alert{
+            title=TITLE,
+            buttons={"Ok", "Cancel"},
+            text="WARNING! The FIX palette can only contain a maximum of 16 colors. Some of them won't show up.",
+        }
+        
+        if res ~= 1 then
+            return
+        end
+    else
+        print("WARNING! The FIX palette can only contain a maximum of 16 colors. Some of them won't show up.")
     end
 end
 
-if app.activeSprite.width % 8 ~= 0 then
-    app.alert{
-        title=TITLE,
-        text="ERROR! The tiles' width must be a multiple of 8.",
-    }
+if sprite.width % 8 ~= 0 then
+    if app.isUIAvailable then
+        app.alert{
+            title=TITLE,
+            text="ERROR! The tiles' width must be a multiple of 8.",
+        }
+    else
+        print("ERROR! The tiles' width must be a multiple of 8.")
+    end
+    
     return
 end
 
-if app.activeSprite.height % 8 ~= 0 then
-    app.alert{
-        title=TITLE,
-        text="ERROR! The tiles' height must be a multiple of 8.",
-    }
+if sprite.height % 8 ~= 0 then
+    if app.isUIAvailable then
+        app.alert{
+            title=TITLE,
+            text="ERROR! The tiles' height must be a multiple of 8.",
+        }
+    else
+        print("ERROR! The tiles' height must be a multiple of 8.")
+    end
+    
     return
 end
-
---[[local alert_res = app.alert{
-    title=TITLE,
-    text="WARNING! This tool only converts the currently selected layer.",
-    buttons={"Ok", "Cancel"}
-}
-
-if alert_res ~= 1 then
-    return
-end]]--
 
 --------| Convert palette |--------
 local palette = {}
 
 for i=0,15 do
     local color = layer.sprite.palettes[PALETTE_INDEX]:getColor(0)
-    
-    if i <= #layer.sprite.palettes[PALETTE_INDEX] then
+
+    if i <= (#layer.sprite.palettes[PALETTE_INDEX]-1) then
         color = layer.sprite.palettes[PALETTE_INDEX]:getColor(i)
     end
     
@@ -146,7 +169,7 @@ end
 
 --------| Save FIX graphics |--------
 local sprite_parent_dir = app.fs.filePath(app.activeSprite.filename)
-local fix_output_path = app.fs.joinPath(sprite_parent_dir, "s1.bin")
+local fix_output_path = app.fs.joinPath(sprite_parent_dir, sprite_name..".s1")
 local fix_out = io.open(fix_output_path, "wb")
 local fix_data_string = ""
 
@@ -158,7 +181,7 @@ fix_out:write(fix_data_string)
 fix_out:close()
 
 --------| Save converted palette |--------
-local pal_output_path= app.fs.joinPath(sprite_parent_dir, "pal.txt")
+local pal_output_path= app.fs.joinPath(sprite_parent_dir, sprite_name..".pal.txt")
 local pal_out = io.open(pal_output_path, "w")
 local pal_out_string = ""
 
