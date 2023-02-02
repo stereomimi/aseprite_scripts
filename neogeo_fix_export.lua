@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------
 ------------------ Aseprite Neogeo Fix Image Converter ------------------
-------------------         Made by GbaCretin           ------------------
+------------------         Made by StereoMimi          ------------------
 -------------------------------------------------------------------------
 
 ----------------------------| Constants |---------------------------
-local TITLE         = "Aseprite Neogeo Fix Image Converter"
+local TITLE         = "NeoGeo fix export"
 local PALETTE_INDEX = 1
 
 -----------------------| Conversion Functions |---------------------
