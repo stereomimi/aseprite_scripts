@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------
 ------------------ Aseprite Neogeo Fix Image Converter ------------------
-------------------         Made by GbaCretin           ------------------
+------------------         Made by STereoMimi          ------------------
 -------------------------------------------------------------------------
 -- WARNING! This only works with 8 MBs of sprite data;
 -- it can be modified easily to save to more croms though.
 
 -------------------------------| Constants |------------------------------
-local TITLE         = "Aseprite Neogeo Sprite Image Converter"
+local TITLE         = "NeoGeo sprite export"
 local PALETTE_INDEX = 1
 
 --------------------------| Conversion Functions |------------------------
